@@ -30,17 +30,17 @@
 
       /* popup width tokens */
       --w-single:  420px;
-      --w-compare: 840px;
+      --w-compare: 680px;
     }
 
     /* ── Body & Layout ────────────────────────────────────────── */
     body {
       width: var(--w-single);
-      min-height: 580px;
+      min-height: 540px;
       background: var(--bg);
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       color: var(--text);
-      overflow-x: hidden;
+      overflow: hidden;
       /* smooth width expansion */
       transition: width 0.35s cubic-bezier(.4,0,.2,1);
     }
@@ -262,8 +262,11 @@
     #comparePanel {
       display: none;
       flex-direction: row;
-      gap: 14px;
-      padding: 0 20px 20px;
+      gap: 10px;
+      padding: 0 12px 16px;
+      box-sizing: border-box;
+      width: 100%;
+      overflow: hidden;
     }
 
     body.compare-mode #singlePanel  { display: none; }
@@ -272,9 +275,9 @@
     /* shared input row above both panels */
     #compareInputRow {
       display: none;
-      padding: 0 20px 0;
+      padding: 0 12px 0;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
     }
     body.compare-mode #compareInputRow { display: flex; }
 
@@ -302,20 +305,30 @@
       color: var(--text-dim);
     }
 
-    .panel-header .model-select-wrap { flex: 1; }
-    .panel-header select { width: 100%; }
+    .panel-header .model-select-wrap { flex: 1; min-width: 0; }
+    .panel-header select {
+      width: 100%;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 11px;
+      padding: 7px 22px 7px 9px;
+    }
 
     .panel-response {
       background: var(--surface);
       border: 1.5px solid var(--border);
       border-radius: var(--radius);
-      padding: 13px;
-      font-size: 12.5px;
-      line-height: 1.65;
+      padding: 11px;
+      font-size: 12px;
+      line-height: 1.6;
       overflow-y: auto;
-      min-height: 340px;
-      max-height: 380px;
+      overflow-x: hidden;
+      min-height: 300px;
+      max-height: 340px;
       transition: border-color var(--transition);
+      word-break: break-word;
     }
     .panel-response:hover { border-color: var(--border-h); }
     .panel-response::-webkit-scrollbar       { width: 4px; }

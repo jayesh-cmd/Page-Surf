@@ -1,6 +1,6 @@
 const API = "http://127.0.0.1:8000";
-const DEFAULT_MODEL_A = "gpt-4o";
-const DEFAULT_MODEL_B = "claude-3-5-sonnet-20241022";
+const DEFAULT_MODEL_A = "openai/gpt-4o";
+const DEFAULT_MODEL_B = "anthropic/claude-sonnet-4.5";
 
 // ── DOM refs ───────────────────────────────────────────────────────────────
 const compareToggle  = document.getElementById("compareToggle");
@@ -86,6 +86,18 @@ async function extractPageContent() {
   });
 }
 
+// Strip markdown symbols but keep structure (bullets, line breaks)
+function stripMarkdown(text) {
+  return text
+    .replace(/\*\*(.+?)\*\*/gs, '$1')   // **bold** → bold
+    .replace(/\*(.+?)\*/gs, '$1')        // *italic* → italic
+    .replace(/^#{1,6}\s+/gm, '')         // ## Heading → Heading
+    .replace(/```[\s\S]*?```/g, '')       // remove code blocks
+    .replace(/`([^`]+)`/g, '$1')         // `inline code` → inline code
+    .replace(/^\s*>\s?/gm, '')           // remove blockquotes >
+    .trim();
+}
+
 // ── Word-by-word stream animation ──────────────────────────────────────────
 function streamText(text, container, delayMs = 35) {
   container.innerHTML = '<div class="response-text"></div>';
@@ -150,7 +162,7 @@ async function handleSingleAsk() {
 
     if (!res.ok) throw new Error(`Server error ${res.status}`);
     const data = await res.json();
-    streamText(data.answer, responseBox);
+    streamText(stripMarkdown(data.answer), responseBox);
 
   } catch (err) {
     showError(responseBox, `${err.message}. Is the Python backend running on port 8000?`);
@@ -197,8 +209,8 @@ async function handleCompareAsk() {
     const data = await res.json();
 
     // Stream both responses simultaneously
-    streamText(data.answer_a, responseA, 30);
-    streamText(data.answer_b, responseB, 30);
+    streamText(stripMarkdown(data.answer_a), responseA, 30);
+    streamText(stripMarkdown(data.answer_b), responseB, 30);
 
   } catch (err) {
     showError(responseA, err.message);

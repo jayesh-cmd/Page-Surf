@@ -1,71 +1,94 @@
-# PageSurf – A Conversational Agentic RAG-Based Chatbot for Any Webpage
+# PageSurf
 
-PageSurf is an AI-powered Chrome extension that allows you to "chat with any website" in real-time. Whether it's a dense research paper, a long blog post, a Wikipedia article, or a university portal — simply click the extension and ask questions directly. The backend parses the page, indexes it, and uses a smart agent to answer using local context or fallback to live web search.
+A Chrome extension that lets you chat with any webpage using AI. Open any page, click the extension, and ask questions, it reads the page and answers using the content. If the page doesn't have the answer, it searches the web automatically.
+
+Supports **10 models** (GPT-4o, Claude, Gemini, Llama, Mistral, DeepSeek) via [Mesh API](https://api.meshapi.ai), with a **side-by-side comparison mode** to run two models at once.
 
 ---
 
-## 🛠️ System Architecture & Data Flow
+## How It Works
 
-PageSurf uses a hybrid architecture combining a lightweight Manifest V3 Chrome Extension frontend with an event-driven FastAPI + LangChain backend.
+1. You click "Ask" in the extension popup.
+2. The extension extracts all visible text from the current tab (`document.body.innerText`).
+3. That text gets sent to the Python backend along with your question.
+4. The backend splits the text into chunks, embeds them, and finds the top 3 most relevant ones using FAISS (RAG).
+5. Those chunks + your question get sent to whichever model you picked via Mesh API.
+6. If the model can't find the answer in the page, it automatically calls DuckDuckGo search and tries again.
+7. The answer streams back to the popup word-by-word.
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor User
-    participant Ext as Chrome Extension
-    participant API as FastAPI Backend
-    participant DB as FAISS Vector Store
-    participant LLM as Groq (Llama 3.3 70B)
-    participant Search as DuckDuckGo Tool
+**Compare mode** runs two models on the same query in parallel and shows both answers side by side.
 
-    User->>Ext: Type question & click "Ask"
-    Ext->>Ext: Extract DOM text (document.body.innerText)
-    Ext->>API: POST /chat (payload: text, query, session_id)
-    Note over API: Format multi-turn conversation history
-    API->>API: Split webpage text into 500-char chunks
-    API->>API: Embed chunks & index in FAISS (local RAM)
-    API->>DB: Query similarity search (k=3)
-    DB-->>API: Return top-3 relevant context chunks
-    API->>LLM: Send context + query + tool descriptions (web_search)
-    
-    alt Context is sufficient
-        LLM-->>API: Return direct answer text
-    else Context is insufficient (out-of-domain query)
-        LLM-->>API: Call tool: web_search(query)
-        API->>Search: Execute web query
-        Search-->>API: Return live search snippets
-        API->>LLM: Re-prompt LLM (Search results + User Query)
-        LLM-->>API: Return final consolidated answer
-    end
+---
 
-    API->>API: Append turn to session deque (maxlen=5)
-    API-->>Ext: Return JSON response {"answer": ...}
-    Ext-->>User: Display answer in UI bubble
+## Tech Stack
+
+| Layer | Tech |
+|---|---|
+| Extension | HTML, CSS, JavaScript (Chrome Manifest V3) |
+| Backend | Python, FastAPI |
+| LLM Gateway | [Mesh API](https://api.meshapi.ai) (OpenAI-compatible) |
+| RAG | FAISS + `BAAI/bge-small-en` embeddings |
+| Web Search | DuckDuckGo (fallback tool) |
+
+---
+
+## Setup
+
+### 1. Backend
+
+```bash
+cd backend
+pip install -r requirements.txt
 ```
 
+Create a `.env` file in the project root:
+```
+MESH_API=your_mesh_api_key_here
+```
+
+Start the server:
+```bash
+uvicorn main:app --reload
+```
+
+### 2. Chrome Extension
+
+1. Go to `chrome://extensions`
+2. Enable **Developer Mode**
+3. Click **Load unpacked** → select the `extension/` folder
+
+That's it. The backend runs on `http://127.0.0.1:8000` and the extension talks to it directly.
+
 ---
 
-## 🚀 Key Technical Features
+## Available Models
 
-### 1. Conversational Memory (Multi-Turn Chat)
-* **In-Memory History:** The backend implements an in-memory session database (`session_db`) keyed by the user's active Chrome **Tab ID** (ensuring chats remain distinct per tab).
-* **Sliding Window:** Uses `collections.deque(maxlen=5)` to automatically manage and restrict history to the last 5 active message pairs, keeping context overhead low and responses concise.
-
-### 2. Tool-Calling Agent Fallback
-* **Web Search Tool:** Integrated with `DuckDuckGoSearchRun` to allow the LLM to search the internet if the webpage context lacks the information required to answer the query.
-* **Custom Routing:** Avoids heavy LangChain agents by implementing a custom tool invocation loop, parsing the LLM's `tool_calls` object directly for lower latency and transparent execution.
-
-### 3. Production Optimizations
-* **Sub-Second RAG:** Embedding generation (`BAAI/bge-small-en` via Hugging Face) and vector searching (FAISS) are computed locally in less than **0.3 seconds**.
-* **macOS DNS Socket Patch:** Implemented a network monkey-patch forcing IPv4 socket resolution. This bypasses macOS's broken IPv6 DNS lookup delays, reducing outgoing API latency to Groq from **75 seconds to 0.6 seconds**.
+| Model | ID |
+|---|---|
+| GPT-4o | `openai/gpt-4o` |
+| GPT-4o Mini | `openai/gpt-4o-mini` |
+| GPT-4.1 | `openai/gpt-4.1` |
+| Claude Sonnet 4.5 | `anthropic/claude-sonnet-4.5` |
+| Claude Haiku 4.5 | `anthropic/claude-haiku-4.5` |
+| Gemini 2.5 Flash | `google/gemini-2.5-flash` |
+| Gemini 2.5 Pro | `google/gemini-2.5-pro` |
+| Llama 3.3 70B | `meta-llama/llama-3.3-70b-instruct` |
+| Mistral Large 3 | `mistralai/mistral-large-3` |
+| DeepSeek R1 | `deepseek/deepseek-r1` |
 
 ---
 
-## 💻 Tech Stack
+## Project Structure
 
-* **Frontend:** Vanilla HTML, CSS, JavaScript (Chrome Extension Manifest V3)
-* **Backend:** Python, FastAPI, Pydantic
-* **LLM Engine:** Groq API running `llama-3.3-70b-versatile`
-* **Embeddings:** `SentenceTransformer` with `BAAI/bge-small-en`
-* **Vector Store:** Facebook AI Similarity Search (FAISS)
-* **Agent Toolkit:** LangChain Core, DuckDuckGo Search API
+```
+PageSurf/
+├── backend/
+│   ├── main.py           # FastAPI app — /models, /chat, /compare
+│   └── requirements.txt
+├── extension/
+│   ├── manifest.json
+│   ├── popup.html        # Extension UI
+│   ├── popup.js          # Ask + Compare logic
+│   └── content.js
+└── .env                  # MESH_API key
+```
