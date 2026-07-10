@@ -1,209 +1,448 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PageSurf</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600;700&display=swap');
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PageSurf</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600;700&display=swap');
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    /* ── Reset & Variables ────────────────────────────────────── */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-        body {
-            width: 380px;
-            height: 500px;
-            background: #191919; /* Claude-style dark charcoal */
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            color: #ecebe8; /* Claude-style warm white text */
-            position: relative;
-            overflow: hidden;
-        }
+    :root {
+      --bg:         #191919;
+      --surface:    #222222;
+      --surface2:   #2a2a2a;
+      --border:     #2e2e2e;
+      --border-h:   #3a3a3a;
+      --accent:     #ff6b35;
+      --accent-h:   #e55a2b;
+      --accent-glow:rgba(255,107,53,.18);
+      --text:       #ecebe8;
+      --text-sub:   #94a3b8;
+      --text-dim:   #64748b;
+      --error-bg:   #2d1515;
+      --error-txt:  #ff6b6b;
+      --error-bdr:  #5c2020;
+      --radius:     10px;
+      --transition: 0.25s ease;
 
-        .container {
-            width: 100%;
-            height: 100%;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            background: #191919; /* Matching background */
-        }
+      /* popup width tokens */
+      --w-single:  420px;
+      --w-compare: 840px;
+    }
 
-        .header {
-            text-align: center;
-            margin-bottom: 18px;
-        }
+    /* ── Body & Layout ────────────────────────────────────────── */
+    body {
+      width: var(--w-single);
+      min-height: 580px;
+      background: var(--bg);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text);
+      overflow-x: hidden;
+      /* smooth width expansion */
+      transition: width 0.35s cubic-bezier(.4,0,.2,1);
+    }
 
-        .header h1 {
-            font-family: 'Press Start 2P', monospace;
-            font-size: 16px;
-            color: #ff6b35; /* Orange Minecraft pixelated color */
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: -0.5px;
-        }
+    body.compare-mode { width: var(--w-compare); }
 
-        .header p {
-            font-size: 11px;
-            color: #64748b;
-            font-weight: 500;
-        }
+    /* ── Header ───────────────────────────────────────────────── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid var(--border);
+    }
 
-        .input-container {
-            position: relative;
-            margin-bottom: 12px;
-        }
+    .brand { display: flex; align-items: center; gap: 10px; }
 
-        #userQuery {
-            width: 100%;
-            height: 70px;
-            background: #222222; /* Claude-style lighter charcoal */
-            border: 1.5px solid #2e2e2e; /* Subtle dark border */
-            border-radius: 8px;
-            padding: 12px;
-            font-size: 13.5px;
-            color: #ecebe8;
-            font-family: inherit;
-            resize: none;
-            transition: all 0.2s ease;
-        }
+    .brand h1 {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 13px;
+      color: var(--accent);
+      letter-spacing: -0.5px;
+      line-height: 1;
+    }
 
-        #userQuery:focus {
-            outline: none;
-            border-color: #ff6b35;
-            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.15);
-            background: #262626;
-        }
+    .brand .badge {
+      font-size: 9px;
+      font-weight: 700;
+      background: var(--accent-glow);
+      color: var(--accent);
+      border: 1px solid rgba(255,107,53,.3);
+      border-radius: 4px;
+      padding: 2px 6px;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+    }
 
-        #userQuery::placeholder {
-            color: #94a3b8;
-        }
+    /* ── Compare Toggle Button ────────────────────────────────── */
+    #compareToggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border: 1.5px solid var(--border-h);
+      border-radius: 8px;
+      background: var(--surface2);
+      color: var(--text-sub);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    #compareToggle:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-glow);
+    }
+    #compareToggle.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-glow);
+    }
+    #compareToggle svg { width: 13px; height: 13px; flex-shrink: 0; }
 
-        #askBtn {
-            width: 100%;
-            padding: 11px 16px;
-            background: #ff6b35; /* Minecraft Orange theme */
-            border: none;
-            border-radius: 8px;
-            color: white;
-            font-size: 14px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 6px -1px rgba(255, 107, 53, 0.2);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
-            text-transform: uppercase;
-        }
+    /* ── Main Content ─────────────────────────────────────────── */
+    .main {
+      padding: 16px 20px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
 
-        #askBtn:hover {
-            background: #e55a2b;
-            box-shadow: 0 6px 12px rgba(255, 107, 53, 0.35);
-        }
+    /* ── Input Row (query + model) ────────────────────────────── */
+    .input-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
 
-        #askBtn:active {
-            transform: translateY(1px);
-        }
+    .textarea-wrap { flex: 1; position: relative; }
 
-        #askBtn:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            transform: none;
-        }
+    textarea {
+      width: 100%;
+      height: 68px;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 11px 13px;
+      font-size: 13px;
+      color: var(--text);
+      font-family: inherit;
+      resize: none;
+      transition: border-color var(--transition), box-shadow var(--transition);
+      line-height: 1.5;
+    }
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    textarea::placeholder { color: var(--text-dim); }
 
-        #responseBox {
-            background: #222222; /* Claude-style lighter charcoal */
-            border: 1.5px solid #2e2e2e; /* Subtle dark border */
-            border-radius: 8px;
-            padding: 14px;
-            flex-grow: 1;
-            overflow-y: auto;
-            font-size: 13.5px;
-            line-height: 1.6;
-            margin-top: 15px;
-            transition: all 0.3s ease;
-        }
+    /* ── Model Selector ───────────────────────────────────────── */
+    .model-select-wrap { position: relative; }
+    .model-select-wrap::after {
+      content: '▾';
+      position: absolute;
+      right: 10px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-dim);
+      pointer-events: none;
+      font-size: 11px;
+    }
 
-        #responseBox::-webkit-scrollbar {
-            width: 5px;
-        }
+    select {
+      appearance: none;
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text-sub);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 9px 30px 9px 12px;
+      cursor: pointer;
+      transition: border-color var(--transition);
+      white-space: nowrap;
+    }
+    select:focus { outline: none; border-color: var(--accent); }
+    select:hover { border-color: var(--border-h); }
 
-        #responseBox::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
+    /* ── Ask Button ───────────────────────────────────────────── */
+    #askBtn {
+      width: 100%;
+      padding: 11px;
+      background: var(--accent);
+      border: none;
+      border-radius: var(--radius);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all var(--transition);
+      box-shadow: 0 4px 14px rgba(255,107,53,.25);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+    #askBtn:hover  { background: var(--accent-h); box-shadow: 0 6px 18px rgba(255,107,53,.35); }
+    #askBtn:active { transform: translateY(1px); }
+    #askBtn:disabled { opacity: .65; cursor: not-allowed; transform: none; }
 
-        #responseBox::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 3px;
-        }
+    /* ── Response Area ────────────────────────────────────────── */
+    .response-area {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      flex: 1;
+      overflow-y: auto;
+      font-size: 13px;
+      line-height: 1.65;
+      min-height: 200px;
+      max-height: 280px;
+      transition: border-color var(--transition);
+    }
+    .response-area:hover { border-color: var(--border-h); }
+    .response-area::-webkit-scrollbar       { width: 4px; }
+    .response-area::-webkit-scrollbar-track { background: transparent; }
+    .response-area::-webkit-scrollbar-thumb { background: #3a3a3a; border-radius: 4px; }
 
-        #responseBox::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
+    .placeholder-msg {
+      color: var(--text-dim);
+      text-align: center;
+      margin-top: 60px;
+      font-style: italic;
+      font-size: 12.5px;
+    }
 
-        .loading {
-            display: inline-block;
-            width: 14px;
-            height: 14px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: #ffffff;
-            animation: spin 0.8s linear infinite;
-        }
+    .response-text { color: var(--text); white-space: pre-wrap; }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+    .word {
+      display: inline;
+      opacity: 0;
+      animation: wordFadeIn 0.4s ease forwards;
+    }
+    @keyframes wordFadeIn { to { opacity: 1; } }
 
-        .response-text {
-            color: #e2e8f0; /* Soft readable white/gray for dark mode */
-            white-space: pre-wrap;
-        }
+    .error-message {
+      color: var(--error-txt);
+      background: var(--error-bg);
+      border: 1px solid var(--error-bdr);
+      border-radius: 8px;
+      padding: 10px 13px;
+      font-size: 12.5px;
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
 
-        .word {
-            display: inline-block;
-            opacity: 0;
-            animation: wordFadeIn 0.45s ease-out forwards;
-        }
+    /* ── Loading Spinner ──────────────────────────────────────── */
+    .spinner {
+      width: 13px; height: 13px;
+      border: 2px solid rgba(255,255,255,.25);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-        @keyframes wordFadeIn {
-            to {
-                opacity: 1;
-            }
-        }
+    /* ══════════════════════════════════════════════════════════════
+       COMPARE MODE
+    ══════════════════════════════════════════════════════════════ */
+    #comparePanel {
+      display: none;
+      flex-direction: row;
+      gap: 14px;
+      padding: 0 20px 20px;
+    }
 
-        .error-message {
-            color: #ef4444;
-            background: #fef2f2;
-            border: 1px solid #fee2e2;
-            border-radius: 6px;
-            padding: 10px;
-            font-size: 12.5px;
-            animation: fadeIn 0.3s ease-out;
-        }
-    </style>
+    body.compare-mode #singlePanel  { display: none; }
+    body.compare-mode #comparePanel { display: flex; }
+
+    /* shared input row above both panels */
+    #compareInputRow {
+      display: none;
+      padding: 0 20px 0;
+      flex-direction: column;
+      gap: 12px;
+    }
+    body.compare-mode #compareInputRow { display: flex; }
+
+    /* ── Model Panel Card ─────────────────────────────────────── */
+    .model-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .panel-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: var(--text-dim);
+    }
+
+    .panel-header .model-select-wrap { flex: 1; }
+    .panel-header select { width: 100%; }
+
+    .panel-response {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 13px;
+      font-size: 12.5px;
+      line-height: 1.65;
+      overflow-y: auto;
+      min-height: 340px;
+      max-height: 380px;
+      transition: border-color var(--transition);
+    }
+    .panel-response:hover { border-color: var(--border-h); }
+    .panel-response::-webkit-scrollbar       { width: 4px; }
+    .panel-response::-webkit-scrollbar-track { background: transparent; }
+    .panel-response::-webkit-scrollbar-thumb { background: #3a3a3a; border-radius: 4px; }
+
+    /* ── Compare Ask Button ───────────────────────────────────── */
+    #compareAskBtn {
+      width: 100%;
+      padding: 11px;
+      background: var(--accent);
+      border: none;
+      border-radius: var(--radius);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all var(--transition);
+      box-shadow: 0 4px 14px rgba(255,107,53,.25);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+    #compareAskBtn:hover  { background: var(--accent-h); box-shadow: 0 6px 18px rgba(255,107,53,.35); }
+    #compareAskBtn:active { transform: translateY(1px); }
+    #compareAskBtn:disabled { opacity: .65; cursor: not-allowed; transform: none; }
+
+    /* divider between panels */
+    .panel-divider {
+      width: 1px;
+      background: var(--border);
+      align-self: stretch;
+      border-radius: 1px;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>PageSurf</h1>
-            <p>Ask anything, get intelligent responses</p>
-        </div>
-        
-        <div class="input-container">
-            <textarea id="userQuery" placeholder="Ask a question... (Enter to send)"></textarea>
-        </div>
-        
-        <button id="askBtn">Ask</button>
-        
-        <div id="responseBox"><div style="color: #94a3b8; text-align: center; margin-top: 50px; font-style: italic;">Your response will appear here...</div></div>
+
+  <!-- ── Header ──────────────────────────────────────────────── -->
+  <div class="header">
+    <div class="brand">
+      <h1>PageSurf</h1>
+      <span class="badge">AI</span>
+    </div>
+    <button id="compareToggle" title="Compare two models side by side">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="3" width="9" height="18" rx="2"/>
+        <rect x="13" y="3" width="9" height="18" rx="2"/>
+      </svg>
+      Compare
+    </button>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       SINGLE MODE
+  ══════════════════════════════════════════════════════════════ -->
+  <div id="singlePanel" class="main">
+    <div class="input-row">
+      <div class="textarea-wrap">
+        <textarea id="userQuery" placeholder="Ask anything about this page… (Enter to send)"></textarea>
+      </div>
+      <div class="model-select-wrap">
+        <select id="modelSelect">
+          <option value="">Loading…</option>
+        </select>
+      </div>
     </div>
 
-    <script src="popup.js"></script>
+    <button id="askBtn">Ask</button>
+
+    <div id="responseBox" class="response-area">
+      <div class="placeholder-msg">Your response will appear here…</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       COMPARE MODE – shared input
+  ══════════════════════════════════════════════════════════════ -->
+  <div id="compareInputRow">
+    <textarea id="compareQuery" placeholder="Ask anything about this page… (Enter to send)" style="height:60px;width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:11px 13px;font-size:13px;color:var(--text);font-family:inherit;resize:none;transition:border-color var(--transition),box-shadow var(--transition);line-height:1.5;"></textarea>
+    <button id="compareAskBtn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="9" height="18" rx="2"/><rect x="13" y="3" width="9" height="18" rx="2"/></svg>
+      Compare Models
+    </button>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       COMPARE MODE – side-by-side panels
+  ══════════════════════════════════════════════════════════════ -->
+  <div id="comparePanel">
+    <!-- Left Panel – Model A -->
+    <div class="model-panel" id="panelA">
+      <div class="panel-header">
+        <span class="panel-label">Model A</span>
+        <div class="model-select-wrap">
+          <select id="modelSelectA">
+            <option value="">Loading…</option>
+          </select>
+        </div>
+      </div>
+      <div id="responseA" class="panel-response">
+        <div class="placeholder-msg">Response A will appear here…</div>
+      </div>
+    </div>
+
+    <div class="panel-divider"></div>
+
+    <!-- Right Panel – Model B -->
+    <div class="model-panel" id="panelB">
+      <div class="panel-header">
+        <span class="panel-label">Model B</span>
+        <div class="model-select-wrap">
+          <select id="modelSelectB">
+            <option value="">Loading…</option>
+          </select>
+        </div>
+      </div>
+      <div id="responseB" class="panel-response">
+        <div class="placeholder-msg">Response B will appear here…</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
 </body>
 </html>

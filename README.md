@@ -2,9 +2,6 @@
 
 PageSurf is an AI-powered Chrome extension that allows you to "chat with any website" in real-time. Whether it's a dense research paper, a long blog post, a Wikipedia article, or a university portal — simply click the extension and ask questions directly. The backend parses the page, indexes it, and uses a smart agent to answer using local context or fallback to live web search.
 
-## 📺 Demo Video
-[Watch the Demo on LinkedIn](https://www.linkedin.com/posts/cmd-jayesh_ai-machinelearning-generativeai-activity-7356755637784961024-YtXN?utm_medium=ios_app&rcm=ACoAAFlqJGoBl68XgWGQ56UL9i8cfNrN4L5nMUQ&utm_source=social_share_send&utm_campaign=copy_link)
-
 ---
 
 ## 🛠️ System Architecture & Data Flow
