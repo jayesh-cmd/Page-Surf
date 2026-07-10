@@ -27,17 +27,19 @@ mesh_client = AsyncOpenAI(
     base_url="https://api.meshapi.ai/v1",  # Mesh API OpenAI-compatible base URL
 )
 
-DEFAULT_MODEL = "gpt-4o"
+DEFAULT_MODEL = "openai/gpt-4o"
 
 AVAILABLE_MODELS = [
-    {"id": "gpt-4o",                          "name": "GPT-4o"},
-    {"id": "gpt-4o-mini",                     "name": "GPT-4o Mini"},
-    {"id": "claude-3-5-sonnet-20241022",      "name": "Claude 3.5 Sonnet"},
-    {"id": "claude-3-haiku-20240307",         "name": "Claude 3 Haiku"},
-    {"id": "gemini-1.5-pro",                  "name": "Gemini 1.5 Pro"},
-    {"id": "gemini-1.5-flash",                "name": "Gemini 1.5 Flash"},
-    {"id": "meta-llama/llama-3.3-70b-instruct", "name": "Llama 3.3 70B"},
-    {"id": "mistral-large-latest",            "name": "Mistral Large"},
+    {"id": "openai/gpt-4o",                        "name": "GPT-4o"},
+    {"id": "openai/gpt-4o-mini",                   "name": "GPT-4o Mini"},
+    {"id": "openai/gpt-4.1",                       "name": "GPT-4.1"},
+    {"id": "anthropic/claude-sonnet-4.5",          "name": "Claude Sonnet 4.5"},
+    {"id": "anthropic/claude-haiku-4.5",           "name": "Claude Haiku 4.5"},
+    {"id": "google/gemini-2.5-flash",              "name": "Gemini 2.5 Flash"},
+    {"id": "google/gemini-2.5-pro",               "name": "Gemini 2.5 Pro"},
+    {"id": "meta-llama/llama-3.3-70b-instruct",   "name": "Llama 3.3 70B"},
+    {"id": "mistralai/mistral-large-3",            "name": "Mistral Large 3"},
+    {"id": "deepseek/deepseek-r1",                 "name": "DeepSeek R1"},
 ]
 
 # ── Web Search Tool Definition (OpenAI function-calling format) ───────────────
@@ -90,7 +92,7 @@ class CompareRequest(BaseModel):
     query: str
     session_id: str
     model_a: Optional[str] = DEFAULT_MODEL
-    model_b: Optional[str] = "claude-3-5-sonnet-20241022"
+    model_b: Optional[str] = "anthropic/claude-sonnet-4.5"
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -233,7 +235,7 @@ async def compare(payload: CompareRequest):
     Returns both answers simultaneously.
     """
     model_a = payload.model_a or DEFAULT_MODEL
-    model_b = payload.model_b or "claude-3-5-sonnet-20241022"
+    model_b = payload.model_b or "anthropic/claude-sonnet-4.5"
     history = get_or_create_history(payload.session_id)
     history_str = format_history(history)
     context = build_rag_context(payload.text, payload.query)
