@@ -37,7 +37,6 @@ Supports **10 models** (GPT-4o, Claude, Gemini, Llama, Mistral, DeepSeek) via [M
 ### 1. Backend
 
 ```bash
-cd backend
 pip install -r requirements.txt
 ```
 
@@ -83,12 +82,12 @@ That's it. The backend runs on `http://127.0.0.1:8000` and the extension talks t
 ```
 PageSurf/
 ├── backend/
-│   ├── main.py           # FastAPI app — /models, /chat, /compare
-│   └── requirements.txt
+│   └── main.py           # FastAPI app — /models, /chat, /compare
 ├── extension/
 │   ├── manifest.json
 │   ├── popup.html        # Extension UI
 │   ├── popup.js          # Ask + Compare logic
 │   └── content.js
+├── requirements.txt      # Python dependencies
 └── .env                  # MESH_API key
 ```
