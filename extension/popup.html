@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PageSurf</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 380px;
+            height: 500px;
+            background: #191919; /* Claude-style dark charcoal */
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: #ecebe8; /* Claude-style warm white text */
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            background: #191919; /* Matching background */
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 18px;
+        }
+
+        .header h1 {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 16px;
+            color: #ff6b35; /* Orange Minecraft pixelated color */
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            font-size: 11px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .input-container {
+            position: relative;
+            margin-bottom: 12px;
+        }
+
+        #userQuery {
+            width: 100%;
+            height: 70px;
+            background: #222222; /* Claude-style lighter charcoal */
+            border: 1.5px solid #2e2e2e; /* Subtle dark border */
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 13.5px;
+            color: #ecebe8;
+            font-family: inherit;
+            resize: none;
+            transition: all 0.2s ease;
+        }
+
+        #userQuery:focus {
+            outline: none;
+            border-color: #ff6b35;
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.15);
+            background: #262626;
+        }
+
+        #userQuery::placeholder {
+            color: #94a3b8;
+        }
+
+        #askBtn {
+            width: 100%;
+            padding: 11px 16px;
+            background: #ff6b35; /* Minecraft Orange theme */
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px -1px rgba(255, 107, 53, 0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+        }
+
+        #askBtn:hover {
+            background: #e55a2b;
+            box-shadow: 0 6px 12px rgba(255, 107, 53, 0.35);
+        }
+
+        #askBtn:active {
+            transform: translateY(1px);
+        }
+
+        #askBtn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #responseBox {
+            background: #222222; /* Claude-style lighter charcoal */
+            border: 1.5px solid #2e2e2e; /* Subtle dark border */
+            border-radius: 8px;
+            padding: 14px;
+            flex-grow: 1;
+            overflow-y: auto;
+            font-size: 13.5px;
+            line-height: 1.6;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+        }
+
+        #responseBox::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        #responseBox::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        #responseBox::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        #responseBox::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #ffffff;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .response-text {
+            color: #e2e8f0; /* Soft readable white/gray for dark mode */
+            white-space: pre-wrap;
+        }
+
+        .word {
+            display: inline-block;
+            opacity: 0;
+            animation: wordFadeIn 0.45s ease-out forwards;
+        }
+
+        @keyframes wordFadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+
+        .error-message {
+            color: #ef4444;
+            background: #fef2f2;
+            border: 1px solid #fee2e2;
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 12.5px;
+            animation: fadeIn 0.3s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>PageSurf</h1>
+            <p>Ask anything, get intelligent responses</p>
+        </div>
+        
+        <div class="input-container">
+            <textarea id="userQuery" placeholder="Ask a question... (Enter to send)"></textarea>
+        </div>
+        
+        <button id="askBtn">Ask</button>
+        
+        <div id="responseBox"><div style="color: #94a3b8; text-align: center; margin-top: 50px; font-style: italic;">Your response will appear here...</div></div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>
