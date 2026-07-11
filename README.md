@@ -47,6 +47,7 @@ MESH_API=your_mesh_api_key_here
 
 Start the server:
 ```bash
+cd backend
 uvicorn main:app --reload
 ```
 
